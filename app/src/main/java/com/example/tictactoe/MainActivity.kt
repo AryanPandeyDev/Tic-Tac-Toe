@@ -8,7 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,15 +34,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.tictactoe.ui.theme.OpenSansBold
+import com.example.tictactoe.ui.theme.OpenSansCondensedSemiBold
+import com.example.tictactoe.ui.theme.OpenSansLight
 import com.example.tictactoe.ui.theme.Selected
 import com.example.tictactoe.ui.theme.TicTacToeTheme
 
@@ -62,15 +63,13 @@ class MainActivity : ComponentActivity() {
 fun StartPage() {
     val context = LocalContext.current
     val selected = viewModel<Selected>()
-    var sendData = if (selected.x) "❌" else if (selected.o) "⭕" else null
+    var sendData = if (selected.x) "❌" else if (selected.o) "⭕" else ""
     Box(
         modifier = Modifier.fillMaxSize()
+            .background(color = Color(0xFFd9d9e0)),
+        contentAlignment = Alignment.Center,
+
     ) {
-        Image(
-            painter = painterResource(R.drawable.background2),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize()
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize(),
@@ -81,16 +80,19 @@ fun StartPage() {
             Row {
                 Text(
                     "Tic-",
+                    fontFamily = OpenSansBold,
                     style = TextStyle(color = Color(0xFF00695C), fontSize = 50.sp),
-                    fontWeight = FontWeight.Bold
+
                 )
                 Text(
                     "Tac-",
+                    fontFamily = OpenSansBold,
                     style = TextStyle(color = Color(0xFFEF6C00), fontSize = 50.sp),
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     "Toe",
+                    fontFamily = OpenSansBold,
                     style = TextStyle(color = Color(0xFF6A1B9A), fontSize = 50.sp),
                     fontWeight = FontWeight.Bold
                 )
@@ -101,17 +103,13 @@ fun StartPage() {
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
+                fontFamily = OpenSansLight,
                 style = TextStyle(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF26415E),
-                            Color(0xFF83A6CE)
-                        )
-                    ),
+                    Color(0XFF2e3036),
                     shadow = Shadow(
                         color = Color.Gray,
-                        offset = Offset(8f, 8f),
-                        blurRadius = 8f
+                        offset = Offset(4f, 4f),
+                        blurRadius = 4f
                     )
                 )
             )
@@ -123,8 +121,8 @@ fun StartPage() {
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.Bottom
             ) {
-                SymbolText("❌", selected.x, 'x') { selected.Clicked(it) }
-                SymbolText("⭕", selected.o, 'o') { selected.Clicked(it) }
+                SymbolText("❌", selected.x, 'x') { selected.clicked(it) }
+                SymbolText("⭕", selected.o, 'o') { selected.clicked(it) }
             }
             Button(
                 elevation = ButtonDefaults.buttonElevation(pressedElevation = 16.dp),
@@ -138,7 +136,7 @@ fun StartPage() {
                 modifier = Modifier
                     .size(height = 70.dp, width = 300.dp),
                 onClick = {
-                    if (sendData != null) {
+                    if (sendData != "") {
                         Intent(context,GameActivity::class.java).also {
                             it.putExtra("symbol",sendData)
                             context.startActivity(it)

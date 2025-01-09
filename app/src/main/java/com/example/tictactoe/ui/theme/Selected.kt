@@ -10,7 +10,7 @@ class Selected():ViewModel(){
         private set
     var o by mutableStateOf(false)
         private set
-    fun Clicked(symbol : Char) {
+    fun clicked(symbol : Char) {
         if (symbol == 'x') {
             x = true
             o = false
