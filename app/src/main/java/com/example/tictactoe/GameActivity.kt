@@ -15,6 +15,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -51,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.ViewCompat
@@ -89,13 +95,13 @@ fun ShowGamePreview() {
 fun Game(symbol: String) {
     val context = LocalContext.current
     val gameViewModel = remember { GameViewModel(symbol) }
-    val symbolList = remember {
-        MutableList(9) { mutableStateOf("")}
-    }
     val symbolState = remember {
         MutableList(9) { mutableStateOf(false) }
     }
-    val copy = symbolList.map { it.value }.toMutableList()
+    val copy = gameViewModel.symbolList.map { it.value }.toMutableList()
+    Log.d("symbols",copy.joinToString { it })
+    Log.d("symbols",gameViewModel.winner(copy))
+    var winnerState = gameViewModel.winner(copy)=="❌"|| gameViewModel.winner(copy)=="⭕"
     val drawState = !copy.any { it == "" }
     var reset by remember { mutableStateOf(false) }
     if (reset && context is Activity) context.recreate()
@@ -123,24 +129,29 @@ fun Game(symbol: String) {
                                 if (!symbolState[it].value) {
                                     symbolState[it].value = true
                                     gameViewModel.changeState()
-                                    symbolList[it].value = gameViewModel.state
+                                    gameViewModel.symbolList[it].value = gameViewModel.state
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            if (symbolState[it].value) symbolList[it].value else "",
-                            fontSize = 60.sp
-                        )
+                        AnimatedVisibility(
+                            visible = symbolState[it].value,
+                            enter = fadeIn(tween(500))
+                        ) {
+                            Text (
+                                gameViewModel.symbolList[it].value,
+                                fontSize = 60.sp
+                            )
+                        }
                     }
 
                 }
             }
         )
-        when{
-            gameViewModel.winner(copy)=="❌"|| gameViewModel.winner(copy)=="⭕"-> WinnerBox(gameViewModel.winner(copy)){reset = it}
-            drawState -> WinnerBox(""){reset = it}
-        }
+        AnimatedVisibility(
+            visible = winnerState||drawState,
+            enter = fadeIn(tween(500)) + expandIn(expandFrom = Alignment.CenterStart)
+        ) {WinnerBox(gameViewModel.winner(copy)){reset = it}}
     }
 
 }

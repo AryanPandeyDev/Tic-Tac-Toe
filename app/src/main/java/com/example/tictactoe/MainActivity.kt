@@ -1,5 +1,6 @@
 package com.example.tictactoe
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -8,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +29,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -61,6 +66,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun StartPage() {
+    val originalSize = 300.dp to 70.dp
+    var clickedState by remember { mutableStateOf(false) }
+    val buttonWidth by animateDpAsState(
+        targetValue =  if (clickedState) originalSize.first * 0.98f else originalSize.first,
+        label = "buttonWidth"
+    )
+    val buttonHeight by animateDpAsState(
+        targetValue =  if (clickedState) originalSize.second * 0.95f else originalSize.second,
+        label = "buttonHeight"
+    )
     val context = LocalContext.current
     val selected = viewModel<Selected>()
     var sendData = if (selected.x) "❌" else if (selected.o) "⭕" else ""
@@ -125,6 +140,7 @@ fun StartPage() {
                 SymbolText("⭕", selected.o, 'o') { selected.clicked(it) }
             }
             Button(
+                enabled = sendData != "",
                 elevation = ButtonDefaults.buttonElevation(pressedElevation = 16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF0B1B32),
@@ -134,16 +150,14 @@ fun StartPage() {
                 ),
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier
-                    .size(height = 70.dp, width = 300.dp),
+                    .size(height = buttonHeight, width = buttonWidth),
                 onClick = {
-                    if (sendData != "") {
-                        Intent(context,GameActivity::class.java).also {
-                            it.putExtra("symbol",sendData)
-                            context.startActivity(it)
-                        }
-                    }else {
-                        Toast.makeText(context,"Please Choose A Side",Toast.LENGTH_SHORT).show()
+                    clickedState = true
+                    Intent(context, GameActivity::class.java).also {
+                        it.putExtra("symbol", sendData)
+                        context.startActivity(it)
                     }
+                    if (context is Activity && clickedState) context.finish()
                 }
             ) {
                 Text(
