@@ -72,14 +72,18 @@ import com.example.tictactoe.ui.theme.OpenSansSemiCondensedBold
 import com.example.tictactoe.ui.theme.OpenSansSemiCondensedMedium
 import com.example.tictactoe.ui.theme.OpenSansSemiCondensedRegular
 import com.example.tictactoe.ui.theme.Selected
+import com.example.tictactoe.ui.theme.SymbolStore
 
 class GameActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val symbol = intent?.getStringExtra("symbol") ?: "❌"
+        val mode = intent?.getStringExtra("mode")
         enableEdgeToEdge()
         setContent {
-            Game(symbol)
+            if (mode != null) {
+                Game(symbol,mode)
+            }
         }
     }
 }
@@ -87,22 +91,17 @@ class GameActivity : ComponentActivity() {
 @Preview(showSystemUi = true)
 @Composable
 fun ShowGamePreview() {
-    Game("❌")
+    Game("❌","s")
 }
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun Game(symbol: String) {
+fun Game(symbol: String,mode : String) {
     val context = LocalContext.current
     val gameViewModel = remember { GameViewModel(symbol) }
-    val symbolState = remember {
-        MutableList(9) { mutableStateOf(false) }
-    }
-    val copy = gameViewModel.symbolList.map { it.value }.toMutableList()
-    Log.d("symbols",copy.joinToString { it })
-    Log.d("symbols",gameViewModel.winner(copy))
-    var winnerState = gameViewModel.winner(copy)=="❌"|| gameViewModel.winner(copy)=="⭕"
-    val drawState = !copy.any { it == "" }
+    val symbolStore = SymbolStore(gameViewModel.symbolList)
+    var winnerState by remember { mutableStateOf(false) }
+    var drawState by remember { mutableStateOf(false) }
     var reset by remember { mutableStateOf(false) }
     if (reset && context is Activity) context.recreate()
     Box(
@@ -126,20 +125,39 @@ fun Game(symbol: String) {
                                 shape = RectangleShape
                             )
                             .clickable {
-                                if (!symbolState[it].value) {
-                                    symbolState[it].value = true
-                                    gameViewModel.changeState()
-                                    gameViewModel.symbolList[it].value = gameViewModel.state
+                                if (mode == "m") {
+                                    if (!gameViewModel.symbolState[it].value) {
+                                        gameViewModel.symbolState[it].value = true
+                                        gameViewModel.changeState()
+                                        gameViewModel.symbolList[it]= gameViewModel.state
+                                        symbolStore.updateSymbolList(gameViewModel.symbolList)
+                                        winnerState = gameViewModel.winner()=="❌"|| gameViewModel.winner()=="⭕"
+                                        drawState = !gameViewModel.symbolList.any { it == "" }
+                                        Log.d("symbols","${symbolStore.newSymbol.map { it.values.toList() }}," +
+                                                "List = ${gameViewModel.symbolList}")
+                                    }
+                                }else {
+                                    if (!gameViewModel.symbolState[it].value) {
+                                        gameViewModel.symbolState[it].value = true
+                                        gameViewModel.symbolList[it]= symbol
+                                        gameViewModel.computer()
+                                        symbolStore.updateSymbolList(gameViewModel.symbolList)
+                                        winnerState = gameViewModel.winner()=="❌"|| gameViewModel.winner()=="⭕"
+                                        drawState = !gameViewModel.symbolList.any { it == "" }
+                                        Log.d("symbols","${symbolStore.newSymbol.map { it.values.toList() }}," +
+                                                "List = ${gameViewModel.symbolList}")
+                                    }
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         AnimatedVisibility(
-                            visible = symbolState[it].value,
+                            visible = gameViewModel.symbolState[it].value,
                             enter = fadeIn(tween(500))
                         ) {
+
                             Text (
-                                gameViewModel.symbolList[it].value,
+                                gameViewModel.symbolList[it],
                                 fontSize = 60.sp
                             )
                         }
@@ -150,8 +168,8 @@ fun Game(symbol: String) {
         )
         AnimatedVisibility(
             visible = winnerState||drawState,
-            enter = fadeIn(tween(500)) + expandIn(expandFrom = Alignment.CenterStart)
-        ) {WinnerBox(gameViewModel.winner(copy)){reset = it}}
+            enter = fadeIn(tween(1000)) + expandIn(expandFrom = Alignment.CenterStart)
+        ) {WinnerBox(gameViewModel.winner()){reset = it}}
     }
 
 }

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -79,16 +80,14 @@ fun StartPage() {
     val context = LocalContext.current
     val selected = viewModel<Selected>()
     var sendData = if (selected.x) "❌" else if (selected.o) "⭕" else ""
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .background(color = Color(0xFFd9d9e0)),
-        contentAlignment = Alignment.Center,
-
+    Surface (
+        modifier = Modifier.fillMaxSize(),
+        color = Color(0xFFd9d9e0)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(50.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.size(50.dp))
@@ -112,7 +111,7 @@ fun StartPage() {
                     fontWeight = FontWeight.Bold
                 )
             }
-            Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(50.dp))
             Text(
                 "CHOOSE YOUR SIDE",
                 fontSize = 30.sp,
@@ -128,7 +127,7 @@ fun StartPage() {
                     )
                 )
             )
-
+            Spacer(modifier = Modifier.size(25.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -138,6 +137,34 @@ fun StartPage() {
             ) {
                 SymbolText("❌", selected.x, 'x') { selected.clicked(it) }
                 SymbolText("⭕", selected.o, 'o') { selected.clicked(it) }
+            }
+            Spacer(modifier = Modifier.size(50.dp))
+            Button(
+                enabled = sendData != "",
+                elevation = ButtonDefaults.buttonElevation(pressedElevation = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0B1B32),
+                    contentColor = Color.White,
+                    disabledContentColor = Color.White,
+                    disabledContainerColor = Color(0xFF0B1B32)
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .size(height = buttonHeight, width = buttonWidth),
+                onClick = {
+                    clickedState = true
+                    Intent(context, GameActivity::class.java).also {
+                        it.putExtra("symbol", sendData)
+                        it.putExtra("mode","s")
+                        context.startActivity(it)
+                    }
+                    if (context is Activity && clickedState) context.finish()
+                }
+            ) {
+                Text(
+                    "Single Player",
+                    fontSize = 30.sp,
+                )
             }
             Button(
                 enabled = sendData != "",
@@ -155,13 +182,14 @@ fun StartPage() {
                     clickedState = true
                     Intent(context, GameActivity::class.java).also {
                         it.putExtra("symbol", sendData)
+                        it.putExtra("mode","m")
                         context.startActivity(it)
                     }
                     if (context is Activity && clickedState) context.finish()
                 }
             ) {
                 Text(
-                    "START GAME",
+                    "Multi Player",
                     fontSize = 30.sp,
                 )
             }
