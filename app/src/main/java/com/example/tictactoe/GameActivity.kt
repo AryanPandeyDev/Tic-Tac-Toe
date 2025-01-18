@@ -107,7 +107,7 @@ fun Game(symbol: String,mode : String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Cyan)
+            .background(color = Color(0xFFd9d9e0))
             .padding(16.dp)
     ) {
         LazyVerticalGrid(
